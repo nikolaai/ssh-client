@@ -1,12 +1,18 @@
-# Create docker file from alpine base image, install ssh client
-
+# use alpine as base image
 FROM alpine:latest
 
+# Update package index and install openssh-client
 RUN apk update && apk add openssh-client
 
+# Create a new user named "runner" with UID 1000
+RUN adduser -D -u 1000 runner
 
-# add option to ignore host verification
+# Add option to ignore host verification to ssh_config
 RUN echo -e "Host *\n\tStrictHostKeyChecking no\n\n" >> /etc/ssh/ssh_config
 
+# Set the user to "runner"
+USER runner
+
+# Set the default command to "/bin/sh"
 CMD [ "/bin/sh" ]
 

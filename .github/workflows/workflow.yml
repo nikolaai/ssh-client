@@ -29,7 +29,7 @@ jobs:
         run: |
           TAG=$(date +%y%m%d.%H%M%S)
           echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "ghcr.io/$GITHUB_REPOSITORY:${TAG}=$IMAGE_REF" >> $GITHUB_ENV
+          echo "IMAGE_REF=ghcr.io/$GITHUB_REPOSITORY:${TAG}" >> $GITHUB_ENV
       
       - name: check vars
         run: |

@@ -29,7 +29,7 @@ jobs:
         run: |
           TAG=$(date +%y%m%d.%H%M%S)
           echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "::set-output name=IMAGE_REF::ghcr.io/$GITHUB_REPOSITORY:${TAG}"
+          echo "ghcr.io/$GITHUB_REPOSITORY:${TAG}=$IMAGE_REF" >> $GITHUB_ENV
 
       - name: List builders
         run: docker buildx ls
@@ -53,7 +53,7 @@ jobs:
       - name: Scan Docker image with trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ needs.set-tag.outputs.IMAGE_REF }}
+          image-ref: ${{ env.IMAGE_REF }}
           # format: 'table'
           # exit-code: '1'
           ignore-unfixed: true

@@ -54,6 +54,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
           format: 'sarif'
           output: 'trivy-results-image.sarif'
+          # test
 
       - name: Upload SARIF results
         uses: github/codeql-action/upload-sarif@v2

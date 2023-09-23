@@ -15,9 +15,9 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [ linux/amd64, linux/arm64 ]
+    # strategy:
+    #   matrix:
+    #     platform: [ linux/amd64, linux/arm64 ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -37,7 +37,7 @@ jobs:
       - name: Scan Docker image with trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'ghcr.io/$GITHUB_REPOSITORY:${{ env.TAG }}'
+          image-ref: '${{ env.IMAGE_REF }}'
           # format: 'table'
           # exit-code: '1'
           ignore-unfixed: true

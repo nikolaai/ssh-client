@@ -2,7 +2,7 @@
 FROM alpine:latest
 
 # Update package index and install openssh-client
-RUN apk update && apk add openssh-client
+RUN apk --no-cache add openssh-client
 
 # Create a new user named "runner" with UID 1000
 RUN adduser -D -u 1000 runner

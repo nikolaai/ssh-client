@@ -13,6 +13,9 @@ RUN echo -e "Host *\n\tStrictHostKeyChecking no\n\n" >> /etc/ssh/ssh_config
 # Set the user to "runner"
 USER runner
 
+# Set the working directory to the home directory of the "runner" user
+WORKDIR /home/runner
+
 # Set the default command to "/bin/sh"
 CMD [ "/bin/sh" ]
 

@@ -30,6 +30,11 @@ jobs:
           TAG=$(date +%y%m%d.%H%M%S)
           echo "TAG=$TAG" >> $GITHUB_ENV
           echo "ghcr.io/$GITHUB_REPOSITORY:${TAG}=$IMAGE_REF" >> $GITHUB_ENV
+      
+      - name: check vars
+        run: |
+          echo ${{ env.TAG }}
+          echo ${{ env.IMAGE_REF }}
 
       - name: Build Docker image
         run: docker build -t ghcr.io/$GITHUB_REPOSITORY:${{ env.TAG }} -t ghcr.io/$GITHUB_REPOSITORY:latest --progress=plain .

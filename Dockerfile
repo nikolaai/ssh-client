@@ -6,7 +6,7 @@ RUN apk update && apk add openssh-client
 
 
 # add option to ignore host verification
-RUN echo "Host *\n\tStrictHostKeyChecking no\n\n" >> /etc/ssh/ssh_config
+RUN echo -e "Host *\n\tStrictHostKeyChecking no\n\n" >> /etc/ssh/ssh_config
 
 CMD [ "/bin/sh" ]
 

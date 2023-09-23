@@ -25,9 +25,11 @@ jobs:
           ref: main
       
       - name: Set Docker image tag
+        id: set-tag
         run: |
           TAG=$(date +%y%m%d.%H%M%S)
           echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "::set-output name=IMAGE_REF::ghcr.io/$GITHUB_REPOSITORY:${TAG}"
 
       - name: List builders
         run: docker buildx ls
@@ -51,7 +53,7 @@ jobs:
       - name: Scan Docker image with trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.IMAGE_REF }}
+          image-ref: ${{ needs.set-tag.outputs.IMAGE_REF }}
           # format: 'table'
           # exit-code: '1'
           ignore-unfixed: true
@@ -65,11 +67,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: trivy-results-image.sarif
-
-  set-env:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    env:
-      IMAGE_REF: ghcr.io/$GITHUB_REPOSITORY:${{ needs.build-and-push.outputs.TAG }}
-
-      

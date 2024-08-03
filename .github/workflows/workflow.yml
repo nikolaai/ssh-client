@@ -1,59 +1,33 @@
 name: Build and Push Docker Image
 
 on:
+  workflow_dispatch: 
   push:
     branches:
       - main
   pull_request:
-    types: [ closed ]
     branches:
       - main
-  schedule:
-    - cron: '0 5 * * 6/2' # Run every two weeks on Saturday at 5:00 UTC
 
 env:
   DOCKER_BUILDKIT: 1
+  CONTAINER_REGISTRY: ${{ vars.CONTAINER_REGISTRY}}
+  CONTAINER_IMAGE: ${{ vars.CONTAINER_REGISTRY }}/${{ github.repository }}
+  DOCKERFILE: Dockerfile
+  
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     platform: [ linux/amd64, linux/arm64 ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        # with:
-        #   ref: main
-      
-      - name: Set Docker image tag
-        id: set-tag
-        run: |
-          TAG=$(date +%y%m%d.%H%M%S)
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
-          echo "IMAGE_REF=ghcr.io/$GITHUB_REPOSITORY:${TAG}" >> "$GITHUB_ENV"
-      
-      - name: Build Docker image
-        run: docker build -t ghcr.io/$GITHUB_REPOSITORY:${{ env.TAG }} -t ghcr.io/$GITHUB_REPOSITORY:latest --progress=plain .
 
-      - name: Scan Docker image with trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: '${{ env.IMAGE_REF }}'
-          # format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
-          format: 'sarif'
-          # template: '@contrib/sarif.tpl'
-          output: 'trivy-results-image.sarif'
-          # test
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-      - name: Upload SARIF results
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results-image.sarif'
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -61,10 +35,63 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Run hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ${{ env.DOCKERFILE }}
+          failure-threshold: error
 
-      - name: Push Docker image to GitHub Container Registry
+      - name: Set Docker image tag
         run: |
-          IMAGE_TAG="ghcr.io/$GITHUB_REPOSITORY:${{ env.TAG }}"
-          docker push $IMAGE_TAG
-          docker push ghcr.io/$GITHUB_REPOSITORY:latest
+          TAG=$(date +%Y.%m%d.%H%M%S)
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+      
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64, linux/arm64
+          file: ${{ env.DOCKERFILE }}
+          push: true
+          tags: |
+            ${{ env.CONTAINER_IMAGE }}-dev:${{ env.TAG }}
+        if: github.ref != 'refs/heads/main'
 
+      - name: Scan Docker image with trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.CONTAINER_IMAGE }}-dev:${{ env.TAG }}'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          format: 'table'
+          exit-code: '0'
+        if: github.ref != 'refs/heads/main'
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64, linux/arm64
+          file: ${{ env.DOCKERFILE }}
+          push: true
+          tags: |
+            ${{ env.CONTAINER_IMAGE }}:${{ env.TAG }}
+            ${{ env.CONTAINER_IMAGE }}:latest
+        if: github.ref == 'refs/heads/main'
+
+
+      - name: Scan Docker image with trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.CONTAINER_IMAGE }}:${{ env.TAG }}'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          format: 'sarif'
+          output: 'trivy-results-image.sarif'
+          exit-code: '0'
+        if: github.ref == 'refs/heads/main'
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results-image.sarif'
+        if: github.ref == 'refs/heads/main'

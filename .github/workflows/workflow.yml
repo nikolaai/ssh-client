@@ -82,16 +82,12 @@ jobs:
       - name: Scan Docker image with trivy
         uses: aquasecurity/trivy-action@master
         with:
-          # image-ref: '${{ env.IMAGE_REF }}'
           image-ref: '${{ env.CONTAINER_IMAGE }}:${{ env.TAG }}'
-          # format: 'table'
-          exit-code: '1'
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH,MEDIUM'
           format: 'sarif'
-          # template: '@contrib/sarif.tpl'
           output: 'trivy-results-image.sarif'
-          # test
+          exit-code: '1'
         if: github.ref == 'refs/heads/main'
 
       - name: Upload SARIF results

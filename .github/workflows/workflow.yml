@@ -13,7 +13,7 @@ env:
   DOCKER_BUILDKIT: 1
   CONTAINER_REGISTRY: ${{ vars.CONTAINER_REGISTRY}}
   CONTAINER_IMAGE: ${{ vars.CONTAINER_REGISTRY }}/${{ github.repository }}
-  DOCKERFILE: ${{ github.workspace }}/Dockerfile
+  DOCKERFILE: Dockerfile
   
 
 jobs:

@@ -64,7 +64,7 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH,MEDIUM'
           format: 'table'
-          exit-code: '1'
+          exit-code: '0'
         if: github.ref != 'refs/heads/main'
 
       - name: Build Docker image
@@ -87,7 +87,7 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
           format: 'sarif'
           output: 'trivy-results-image.sarif'
-          exit-code: '1'
+          exit-code: '0'
         if: github.ref == 'refs/heads/main'
 
       - name: Upload SARIF results

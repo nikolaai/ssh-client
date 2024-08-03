@@ -1,5 +1,5 @@
 # use alpine as base image
-FROM alpine:3.20.1
+FROM alpine:3.20.2
 
 # Update package index and install openssh-client
 # hadolint ignore=DL3018

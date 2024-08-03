@@ -30,10 +30,10 @@ jobs:
         uses: docker/setup-buildx-action@v3
       
       - name: Run hadolint
-        uses: hadolint/hadolint@v3.1.0
+        uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: Dockerfile
-          failure-theshold: error
+          dockerfile: ${{ env.DOCKERFILE }}
+          failure-threshold: error
 
       - name: Set Docker image tag
         run: |

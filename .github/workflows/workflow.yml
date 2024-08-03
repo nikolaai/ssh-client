@@ -1,7 +1,6 @@
 name: Build and Push Docker Image
 
 on:
-  workflow_dispatch: 
   push:
     branches:
       - main
@@ -15,8 +14,28 @@ env:
   CONTAINER_IMAGE: ${{ vars.CONTAINER_REGISTRY }}/${{ github.repository }}
   DOCKERFILE: Dockerfile
   
-
 jobs:
+  hadolint:
+    name: Run hadolint scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ${{ env.DOCKERFILE }}
+          format: sarif
+          output-file: hadolint-results.sarif
+          failure-threshold: error
+
+      - name: Upload analysys results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: hadolint-results.sarif
+          wait-for-processing: true
+
   build-and-push:
     runs-on: ubuntu-latest
     steps:
@@ -45,12 +64,6 @@ jobs:
           password: ${{ secrets.GH_APP_DEPENDABOT_PRIVATE_KEY }}
         if: github.actor == 'github-actions[bot]'
       
-      - name: Run hadolint
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: ${{ env.DOCKERFILE }}
-          failure-threshold: error
-
       - name: Set Docker image tag
         run: |
           TAG=$(date +%Y.%m%d.%H%M%S)

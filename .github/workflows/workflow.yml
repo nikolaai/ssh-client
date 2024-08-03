@@ -52,7 +52,7 @@ jobs:
         with:
           platforms: linux/amd64, linux/arm64
           file: ${{ env.DOCKERFILE }}
-          push: true
+          push: false
           tags: |
             ${{ env.CONTAINER_IMAGE }}-dev:${{ env.TAG }}
         if: github.ref != 'refs/heads/main'
